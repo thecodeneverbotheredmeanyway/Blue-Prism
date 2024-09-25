@@ -1,0 +1,96 @@
+Dim flName 		As String
+Dim shp 		As Object
+Dim objChart 	As Object
+Dim chrt 		As Object
+Dim rng 		As Object
+Dim OutApp 		As Object
+Dim OutMail 	As Object
+Dim wb 			As Object
+Dim ws 			As Object
+Dim username 	As String
+
+Message = ""
+rng = Nothing
+
+Try
+    wb = GetObject(, "Excel.Application").ActiveWorkbook
+    ws = wb.ActiveSheet
+	username = Environ("USERNAME")
+    flName = "C:\Users\" & username & "\AppData\Local\Temp\RangeAsPNG.png"
+
+		If System.IO.File.Exists(flName) Then
+			System.IO.File.Delete(flName)
+		End If
+    rng = Nothing
+    rng = ws.Range(StartCell & ":" & EndCell).SpecialCells(12) ' 12 represents xlCellTypeVisible constant
+    rng.CopyPicture(Format:=1, Appearance:=1) ' 1 represents xlScreen and xlBitmap constants
+    ws.Application.Wait(500) ' Wait for 500 milliseconds (0.5 seconds)
+	
+    With ws
+        .Paste
+        ws.Application.Wait(500) ' Wait for 500 milliseconds (0.5 seconds)
+        
+        If .Shapes.Count > 0 Then
+            shp = .Shapes(.Shapes.Count)
+            objChart = .ChartObjects.Add(0, 0, shp.Width, shp.Height)
+            chrt = objChart.Chart
+            
+            With chrt
+                shp.Copy
+                .ChartArea.Select
+                .Paste
+                .Export(flName)
+            End With
+            
+            shp.Delete
+            objChart.Delete
+        Else
+            ' Handle the case when there are no range on the worksheet
+            Message = "No range found on the worksheet."
+            Exit Sub
+        End If
+    End With
+
+    OutApp = CreateObject("Outlook.Application")
+    OutMail = OutApp.CreateItem(0)
+		
+	Dim filepaths() As String
+
+    With OutMail
+        .To = Email_To
+        .Subject = Subject
+        .Attachments.Add(flName, 1, 0)
+		' Add attachments
+		Dim i As Integer
+		If filePath <> "" Then
+			filepaths = Split(filePath, ",")
+			For i = LBound(filepaths) To UBound(filepaths)
+				If filepaths(i) <> "" Then
+					.Attachments.Add(Trim(filepaths(i)))
+				End If
+			Next i
+		End If
+
+        .HTMLBody = "<html><img src=""cid:RangeAsPNG.png""><p>"&(Body)&"</p></html>"
+		System.Threading.Thread.Sleep(1000) ' Delay for 1 second
+		.Display
+		.Send
+    End With
+
+    Success = True
+
+Catch ex As Exception
+    Success = False
+    Message = ex.Message
+
+Finally
+    wb = Nothing
+    ws = Nothing
+    rng = Nothing
+    shp = Nothing
+    objChart = Nothing
+    chrt = Nothing
+    OutApp = Nothing
+    OutMail = Nothing
+
+End Try
