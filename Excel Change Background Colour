@@ -1,0 +1,17 @@
+Dim ws,rng As Object
+
+Try
+ws = GetWorksheet(Handle, Workbook, Worksheet)
+rng = ws.Range(StartCell,EndCell)
+rng.Select
+ws.Application.Selection.Interior.Color = RGB(R,G,B)
+
+Success = True
+
+Catch e As Exception
+	Success = False
+	Message = e.Message
+Finally
+	ws = Nothing
+	rng = Nothing
+End Try
