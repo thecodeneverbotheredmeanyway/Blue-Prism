@@ -1,0 +1,58 @@
+Dim sw, dw As Object
+Dim ss, ds As Object
+Dim excel, sheet, source, destination, cells, cell As Object
+
+Try
+
+sw = GetWorkbook(Handle, Source_Workbook)
+dw = GetWorkbook(Handle, Destination_Workbook)
+
+ss = GetWorksheet(Handle, Source_Workbook, Source_Worksheet)
+ds = GetWorksheet(Handle, Destination_Workbook, Destination_Worksheet)
+
+sw.Activate()
+ss.Activate()
+excel = ss.Application
+sheet = excel.ActiveSheet
+cell = excel.ActiveCell
+
+If Source_Range="" Then
+	cells = sheet.Cells
+	Destination_Range = "A1"
+Else
+	cells = sheet.Range(Source_Range)
+End If
+
+cells.Select()
+source = excel.Selection
+source.Copy()
+cell.Select()
+
+dw.Activate()
+ds.Activate()
+sheet = excel.ActiveSheet
+cell = excel.ActiveCell
+destination = sheet.Range(Destination_Range)
+destination.Select()
+sheet.Paste()
+cell.Select()
+
+My.Computer.Clipboard.Clear()
+
+Success = True
+
+Catch e As Exception
+	Success = False
+	Message = e.Message
+Finally
+	sw = Nothing
+	ss = Nothing
+	dw = Nothing
+	ds = Nothing
+	excel = Nothing
+	sheet = Nothing
+	source = Nothing
+	destination = Nothing
+	cells = Nothing
+	cell = Nothing
+End Try
