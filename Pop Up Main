@@ -1,0 +1,9 @@
+private void popUP(string message, string caption)
+{
+
+		System.Windows.Forms.MessageBoxButtons buttons = System.Windows.Forms.MessageBoxButtons.OK;
+		System.Windows.Forms.DialogResult result;
+		
+		result = MessageBox.Show(message, caption, buttons);
+
+}
